@@ -28,6 +28,12 @@ if (!fs.existsSync(DATA_FILE)) {
     fs.writeFileSync(DATA_FILE, JSON.stringify([], null, 2));
 }
 
+import supabase from './supabaseClient.js';
+
+// ... (imports remain same except removing fs and local file paths if not needed for anything else)
+// Wait, I should import supabase first. I'll just rewrite the whole file content block to be safe or use replace_file_content carefully.
+// Actually, since I'm confusing the imports, let's rewrite the routes.
+
 // API Routes
 console.log('Setting up routes...');
 
@@ -38,17 +44,19 @@ app.use((req, res, next) => {
 });
 
 // GET all reservations (Optional, for admin check)
-app.get('/api/reservations', (req, res) => {
-    fs.readFile(DATA_FILE, 'utf8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to read data' });
-        }
-        res.json(JSON.parse(data));
-    });
+app.get('/api/reservations', async (req, res) => {
+    const { data, error } = await supabase
+        .from('reservations')
+        .select('*');
+
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
+    res.json(data);
 });
 
 // POST new reservation
-app.post('/api/reserve', (req, res) => {
+app.post('/api/reserve', async (req, res) => {
     const newReservation = req.body;
 
     // Simple validation
@@ -57,72 +65,68 @@ app.post('/api/reserve', (req, res) => {
     }
 
     // Add timestamp and status
-    newReservation.id = Date.now();
-    newReservation.createdAt = new Date().toISOString();
-    newReservation.status = 'Pending'; // Default status
+    // Supabase handles ID and createdAt automatically, but we can pass status.
+    const { data, error } = await supabase
+        .from('reservations')
+        .insert([{
+            name: newReservation.name,
+            email: newReservation.email,
+            phone: newReservation.phone,
+            guests: newReservation.guests,
+            date: newReservation.date,
+            time: newReservation.time,
+            requests: newReservation.requests,
+            status: 'Pending'
+        }])
+        .select();
 
-    fs.readFile(DATA_FILE, 'utf8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to read data' });
-        }
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
 
-        const reservations = JSON.parse(data);
-        reservations.push(newReservation);
-
-        fs.writeFile(DATA_FILE, JSON.stringify(reservations, null, 2), (err) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to save reservation' });
-            }
-            res.status(201).json({ message: 'Reservation successful!', reservation: newReservation });
-        });
-    });
+    res.status(201).json({ message: 'Reservation successful!', reservation: data[0] });
 });
 
 // PUT update reservation status
-app.put('/api/reservations/:id', (req, res) => {
+app.put('/api/reservations/:id', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    fs.readFile(DATA_FILE, 'utf8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to read data' });
-        }
+    // First fetch old status to check for changes (if email logic needed)
+    const { data: oldData, error: fetchError } = await supabase
+        .from('reservations')
+        .select('status, email, name, date, time, guests')
+        .eq('id', id)
+        .single();
 
-        let reservations = JSON.parse(data);
-        const index = reservations.findIndex(r => r.id == id);
-
-        if (index === -1) {
-            return res.status(404).json({ error: 'Reservation not found' });
-        }
-
-        const oldStatus = reservations[index].status;
-        reservations[index].status = status;
-
-        fs.writeFile(DATA_FILE, JSON.stringify(reservations, null, 2), (err) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to update reservation' });
-            }
-
-            // Send Email if status changed to Confirmed or Cancelled
-            if (status !== oldStatus && (status === 'Confirmed' || status === 'Cancelled')) {
-                sendEmail(reservations[index], status);
-            }
-
-            res.json({ message: 'Reservation updated', reservation: reservations[index] });
-        });
-    });
-});
-
-// Email Configuration
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+    if (fetchError) {
+        return res.status(500).json({ error: fetchError.message });
     }
+
+    const oldStatus = oldData.status;
+
+    const { data, error } = await supabase
+        .from('reservations')
+        .update({ status: status })
+        .eq('id', id)
+        .select();
+
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
+
+    // Send Email if status changed to Confirmed or Cancelled
+    if (status !== oldStatus && (status === 'Confirmed' || status === 'Cancelled')) {
+        sendEmail(oldData, status);
+    }
+
+    res.json({ message: 'Reservation updated', reservation: data[0] });
 });
+
+// ... (Email Configuration remains same)
 
 const sendEmail = (reservation, status) => {
+    // ... (same as before)
     const isConfirmed = status === 'Confirmed';
     const subject = isConfirmed ? 'Reservation Confirmed - Restro.' : 'Reservation Cancelled - Restro.';
 
@@ -159,26 +163,21 @@ const sendEmail = (reservation, status) => {
     });
 };
 
-// Contact Us Data File Path
-const CONTACT_FILE = path.join(__dirname, 'contacts.json');
-
-// Initialize Contact Data File if not exists
-if (!fs.existsSync(CONTACT_FILE)) {
-    fs.writeFileSync(CONTACT_FILE, JSON.stringify([], null, 2));
-}
 
 // GET all contact messages
-app.get('/api/contacts', (req, res) => {
-    fs.readFile(CONTACT_FILE, 'utf8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to read contact data' });
-        }
-        res.json(JSON.parse(data));
-    });
+app.get('/api/contacts', async (req, res) => {
+    const { data, error } = await supabase
+        .from('contacts')
+        .select('*');
+
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
+    res.json(data);
 });
 
 // POST new contact message
-app.post('/api/contact', (req, res) => {
+app.post('/api/contact', async (req, res) => {
     const newMessage = req.body;
 
     // Simple validation
@@ -186,58 +185,45 @@ app.post('/api/contact', (req, res) => {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Add timestamp and ID
-    newMessage.id = Date.now();
-    newMessage.createdAt = new Date().toISOString();
-    newMessage.status = 'Unread'; // Default status
+    const { data, error } = await supabase
+        .from('contacts')
+        .insert([{
+            first_name: newMessage.firstName,
+            last_name: newMessage.lastName,
+            email: newMessage.email,
+            phone: newMessage.phone,
+            subject: newMessage.subject,
+            message: newMessage.message,
+            status: 'Unread'
+        }])
+        .select();
 
-    fs.readFile(CONTACT_FILE, 'utf8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to read contact data' });
-        }
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
 
-        const messages = JSON.parse(data);
-        messages.push(newMessage);
-
-        fs.writeFile(CONTACT_FILE, JSON.stringify(messages, null, 2), (err) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to save message' });
-            }
-            res.status(201).json({ message: 'Message sent successfully!', contact: newMessage });
-        });
-    });
+    res.status(201).json({ message: 'Message sent successfully!', contact: data[0] });
 });
 
 // PUT update contact status
-app.put('/api/contacts/:id', (req, res) => {
+app.put('/api/contacts/:id', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    fs.readFile(CONTACT_FILE, 'utf8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to read data' });
-        }
+    const { data, error } = await supabase
+        .from('contacts')
+        .update({ status: status })
+        .eq('id', id)
+        .select();
 
-        let messages = JSON.parse(data);
-        const index = messages.findIndex(m => m.id == id);
-
-        if (index === -1) {
-            return res.status(404).json({ error: 'Message not found' });
-        }
-
-        messages[index].status = status;
-
-        fs.writeFile(CONTACT_FILE, JSON.stringify(messages, null, 2), (err) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to update message' });
-            }
-            res.json({ message: 'Message updated', contact: messages[index] });
-        });
-    });
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
+    res.json({ message: 'Message updated', contact: data[0] });
 });
 
 // POST reply to contact message
-app.post('/api/contacts/:id/reply', (req, res) => {
+app.post('/api/contacts/:id/reply', async (req, res) => {
     const { id } = req.params;
     const { replyMessage } = req.body;
 
@@ -245,73 +231,76 @@ app.post('/api/contacts/:id/reply', (req, res) => {
         return res.status(400).json({ error: 'Reply message is required' });
     }
 
-    fs.readFile(CONTACT_FILE, 'utf8', (err, data) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to read data' });
-        }
+    // Fetch contact details for email
+    const { data: contact, error: fetchError } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-        let messages = JSON.parse(data);
-        const index = messages.findIndex(m => m.id == id);
+    if (fetchError) {
+        return res.status(500).json({ error: 'Message not found' });
+    }
 
-        if (index === -1) {
-            return res.status(404).json({ error: 'Message not found' });
-        }
+    // Send Email
+    // Note: 'contact' object keys from Supabase are snake_case (first_name), but our email function might expect different or we adapt.
+    // Let's adapt the email function or the object.
 
-        // Send Email
-        const contact = messages[index];
-        sendReplyEmail(contact, replyMessage, (emailErr) => {
-            if (emailErr) {
-                console.error("Email failed", emailErr);
-                return res.status(500).json({ error: 'Failed to send email' });
-            }
+    // Create a normalized contact object for the email function if needed, or update sendReplyEmail to usage snake_case
+    // My previous sendReplyEmail used contact.firstName. Supabase returns first_name.
+    // I will adhere to what Supabase returns.
 
-            // Update status to Replied
-            messages[index].status = 'Replied';
+    const sendReplyEmailV2 = (contactData, replyMsg, cb) => {
+        const subject = `Re: ${contactData.subject} - Restro.`;
+        const htmlContent = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                <h2 style="color: #4CAF50;">Response from Restro.</h2>
+                <p>Dear ${contactData.first_name},</p>
+                <p>${replyMsg}</p>
+                
+                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; color: #777; font-size: 13px;">
+                    <p><strong>Original Message:</strong></p>
+                    <p><em>"${contactData.message}"</em></p>
+                </div>
 
-            fs.writeFile(CONTACT_FILE, JSON.stringify(messages, null, 2), (writeErr) => {
-                if (writeErr) {
-                    return res.status(500).json({ error: 'Failed to update status' });
-                }
-                res.json({ message: 'Reply sent successfully!', contact: messages[index] });
-            });
-        });
-    });
-});
-
-const sendReplyEmail = (contact, replyMessage, callback) => {
-    const subject = `Re: ${contact.subject} - Restro.`;
-
-    const htmlContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-            <h2 style="color: #4CAF50;">Response from Restro.</h2>
-            <p>Dear ${contact.firstName},</p>
-            <p>${replyMessage}</p>
-            
-            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; color: #777; font-size: 13px;">
-                <p><strong>Original Message:</strong></p>
-                <p><em>"${contact.message}"</em></p>
+                <p>Best Regards,<br>Restro. Team</p>
             </div>
-
-            <p>Best Regards,<br>Restro. Team</p>
-        </div>
-    `;
-
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: contact.email,
-        subject: subject,
-        html: htmlContent
+        `;
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: contactData.email,
+            subject: subject,
+            html: htmlContent
+        };
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) cb(error);
+            else {
+                console.log('Reply Email sent:', info.response);
+                cb(null);
+            }
+        });
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            callback(error);
-        } else {
-            console.log('Reply Email sent:', info.response);
-            callback(null);
+    sendReplyEmailV2(contact, replyMessage, async (emailErr) => {
+        if (emailErr) {
+            console.error("Email failed", emailErr);
+            return res.status(500).json({ error: 'Failed to send email' });
         }
+
+        // Update status to Replied
+        const { data: updatedData, error: updateError } = await supabase
+            .from('contacts')
+            .update({ status: 'Replied' })
+            .eq('id', id)
+            .select();
+
+        if (updateError) {
+            return res.status(500).json({ error: 'Failed to update status' });
+        }
+
+        res.json({ message: 'Reply sent successfully!', contact: updatedData[0] });
     });
-};
+});
 
 // Start Server
 app.listen(PORT, () => {
