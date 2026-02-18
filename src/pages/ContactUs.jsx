@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
 import './ContactUs.css';
+import supabase from '../../supabaseClient';
 
 const ContactUs = () => {
     const [formData, setFormData] = useState({
@@ -25,31 +26,33 @@ const ContactUs = () => {
         setStatus({ type: 'loading', message: 'Sending message...' });
 
         try {
-            const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-            const response = await fetch(`${API_URL}/api/contact`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
+            const { data, error } = await supabase
+                .from('contacts')
+                .insert([{
+                    first_name: formData.firstName,
+                    last_name: formData.lastName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    subject: formData.subject,
+                    message: formData.message,
+                    status: 'Unread'
+                }]);
+
+            if (error) throw error;
+
+            setStatus({ type: 'success', message: 'Message Sent Successfully!' });
+            setFormData({
+                firstName: '',
+                lastName: '',
+                email: '',
+                phone: '',
+                subject: '',
+                message: ''
             });
 
-            if (response.ok) {
-                setStatus({ type: 'success', message: 'Message Sent Successfully!' });
-                setFormData({
-                    firstName: '',
-                    lastName: '',
-                    email: '',
-                    phone: '',
-                    subject: '',
-                    message: ''
-                });
-            } else {
-                setStatus({ type: 'error', message: 'Failed to send message. Please try again.' });
-            }
         } catch (error) {
             console.error('Error:', error);
-            setStatus({ type: 'error', message: 'Server error. Please ensure backend is running.' });
+            setStatus({ type: 'error', message: error.message || 'Failed to send message. Please try again.' });
         }
     };
 

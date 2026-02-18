@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Reservation.css';
+import supabase from '../../supabaseClient';
 
 const Reservation = () => {
     const [formData, setFormData] = useState({
@@ -23,32 +24,35 @@ const Reservation = () => {
         setStatus({ type: 'loading', message: 'Booking your table...' });
 
         try {
-            const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-            const response = await fetch(`${API_URL}/api/reserve`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
+            const { data, error } = await supabase
+                .from('reservations')
+                .insert([{
+                    name: formData.name,
+                    email: formData.email,
+                    phone: formData.phone,
+                    guests: formData.guests,
+                    date: formData.date,
+                    time: formData.time,
+                    requests: formData.requests,
+                    status: 'Pending'
+                }]);
+
+            if (error) throw error;
+
+            setStatus({ type: 'success', message: 'Table Booked Successfully! We will confirm via email.' });
+            setFormData({
+                name: '',
+                email: '',
+                phone: '',
+                guests: 'Select',
+                date: '',
+                time: '',
+                requests: ''
             });
 
-            if (response.ok) {
-                setStatus({ type: 'success', message: 'Table Booked Successfully! We will confirm via email.' });
-                setFormData({
-                    name: '',
-                    email: '',
-                    phone: '',
-                    guests: 'Select',
-                    date: '',
-                    time: '',
-                    requests: ''
-                });
-            } else {
-                setStatus({ type: 'error', message: 'Booking failed. Please try again.' });
-            }
         } catch (error) {
             console.error('Error:', error);
-            setStatus({ type: 'error', message: 'Server error. Please ensure backend is running.' });
+            setStatus({ type: 'error', message: error.message || 'Booking failed. Please try again.' });
         }
     };
 
