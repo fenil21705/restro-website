@@ -1,0 +1,122 @@
+/* Chefs.css */
+.chefs-section {
+    padding: 80px 0;
+    background-color: #fdfdfd;
+}
+
+.chefs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    margin-top: 60px;
+}
+
+.chef-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chef-image-wrapper {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    /* Square images mostly, or slight portrait */
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.chef-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.chef-card:hover .chef-image {
+    transform: scale(1.05);
+}
+
+.chef-social-overlay {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    display: flex;
+    gap: 15px;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.chef-card:hover .chef-social-overlay {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.social-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #fff;
+    border-radius: 50%;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.social-icon:hover {
+    color: #fff;
+    background-color: var(--color-primary);
+    transform: translateY(-3px);
+}
+
+.load-more-btn {
+    background-color: var(--color-primary);
+    color: #fff;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.load-more-btn:hover {
+    background-color: #333;
+    transform: translateY(-2px);
+}
+
+.chef-name {
+    font-family: var(--font-serif);
+    font-size: 24px;
+    color: var(--color-text-heading);
+    margin-bottom: 8px;
+}
+
+.chef-role {
+    font-size: 14px;
+    color: var(--color-primary);
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+
+/* Responsive */
+@media (max-width: 900px) {
+    .chefs-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .chefs-grid {
+        grid-template-columns: 1fr;
+    }
+}

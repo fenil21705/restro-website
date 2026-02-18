@@ -1,0 +1,205 @@
+/* Menu.css */
+.menu-page {
+    background-color: #fdfdfd;
+}
+
+.menu-intro-section {
+    padding: 80px 0 40px;
+}
+
+.menu-intro-tag {
+    font-size: 14px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    margin-bottom: 10px;
+    margin-top: 15px;
+    font-weight: 500;
+}
+
+.menu-intro-title {
+    font-family: var(--font-serif);
+    font-size: 48px;
+    color: var(--color-text-heading);
+}
+
+.highlight {
+    color: var(--color-primary);
+}
+
+/* Common Header Icons */
+.header-icons-center {
+    color: var(--color-primary);
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+/* Menu Section Spacing */
+.menu-section {
+    position: relative;
+    padding-bottom: 80px;
+}
+
+/* Ribbon Header */
+.ribbon-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 2;
+}
+
+/* Right aligned ribbon can be added here if needed */
+
+.ribbon-header {
+    background: var(--color-primary);
+    color: #fff;
+    font-family: var(--font-serif);
+    font-size: 24px;
+    padding: 10px 40px;
+    position: relative;
+    clip-path: polygon(100% 0, 95% 50%, 100% 100%, 0% 100%, 5% 50%, 0% 0%);
+    /* Jagged ends */
+    box-shadow: 0 10px 20px rgba(255, 94, 20, 0.3);
+}
+
+/* Grid Layout */
+.menu-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    align-items: center;
+}
+
+.section-reversed .menu-content-grid {
+    direction: rtl;
+    /* Flip visual order */
+}
+
+.section-reversed .menu-content-grid>* {
+    direction: ltr;
+    /* Reset content direction */
+}
+
+/* Menu Image */
+.menu-image-col {
+    display: flex;
+    justify-content: center;
+}
+
+.menu-arch-image {
+    width: 100%;
+    max-width: 450px;
+    height: 500px;
+    position: relative;
+}
+
+.menu-arch-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 250px 250px 20px 20px;
+    /* Arch shape */
+}
+
+/* Menu Items */
+.menu-items-col {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.menu-item-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.item-thumb {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.item-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-header {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 5px;
+}
+
+.item-name {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: var(--color-text-heading);
+    margin: 0;
+    font-weight: 600;
+}
+
+.item-spacer {
+    flex: 1;
+    border-bottom: 2px dotted #ccc;
+    margin: 0 10px;
+}
+
+.item-price {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    color: var(--color-text-heading);
+    font-size: 18px;
+}
+
+.item-desc {
+    font-size: 13px;
+    color: #888;
+    margin: 0;
+    font-style: italic;
+    margin-bottom: 5px;
+}
+
+.item-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.item-tag {
+    font-size: 10px;
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* Mobile Responsive */
+@media (max-width: 900px) {
+    .menu-content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-reversed .menu-content-grid {
+        direction: ltr;
+        /* Reset for mobile stack */
+    }
+
+    .menu-image-col {
+        display: none;
+        /* Hide images on mobile to save space or stack them */
+    }
+}

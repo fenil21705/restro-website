@@ -1,0 +1,34 @@
+[
+  {
+    "firstName": "Test",
+    "lastName": "User",
+    "email": "test@contact.com",
+    "phone": "555-0199",
+    "subject": "Test Msg",
+    "message": "Hello from curl",
+    "id": 1766029937911,
+    "createdAt": "2025-12-18T03:52:17.911Z"
+  },
+  {
+    "firstName": "Fenil",
+    "lastName": "Sojitra",
+    "email": "fenilsojitra21@gmail.com",
+    "phone": "09913421705",
+    "subject": "hi",
+    "message": "bu",
+    "id": 1766030054962,
+    "createdAt": "2025-12-18T03:54:14.962Z",
+    "status": "Replied"
+  },
+  {
+    "firstName": "xyz",
+    "lastName": "xyz",
+    "email": "fenilsojitra2105@gmail.com",
+    "phone": "9913421705",
+    "subject": "invest",
+    "message": "fast",
+    "id": 1766035599678,
+    "createdAt": "2025-12-18T05:26:39.678Z",
+    "status": "Replied"
+  }
+]
