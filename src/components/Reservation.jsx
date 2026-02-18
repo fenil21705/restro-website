@@ -23,7 +23,8 @@ const Reservation = () => {
         setStatus({ type: 'loading', message: 'Booking your table...' });
 
         try {
-            const response = await fetch('http://localhost:5000/api/reserve', {
+            const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+            const response = await fetch(`${API_URL}/api/reserve`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

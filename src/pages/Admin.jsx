@@ -17,13 +17,14 @@ const Admin = () => {
     // Fetch Data
     const fetchData = async () => {
         try {
+            const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
             // Fetch Reservations
-            const resResponse = await fetch('http://localhost:5000/api/reservations');
+            const resResponse = await fetch(`${API_URL}/api/reservations`);
             if (!resResponse.ok) throw new Error('Failed to fetch reservations');
             const resData = await resResponse.json();
 
             // Fetch Messages
-            const msgResponse = await fetch('http://localhost:5000/api/contacts');
+            const msgResponse = await fetch(`${API_URL}/api/contacts`);
             if (!msgResponse.ok) throw new Error('Failed to fetch messages');
             const msgData = await msgResponse.json();
 
@@ -52,7 +53,8 @@ const Admin = () => {
     // Update Status Handlers
     const handleReservationStatusUpdate = async (id, newStatus) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/reservations/${id}`, {
+            const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+            const response = await fetch(`${API_URL}/api/reservations/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus }),
@@ -69,7 +71,8 @@ const Admin = () => {
 
     const handleMessageStatusUpdate = async (id, newStatus) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/contacts/${id}`, {
+            const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+            const response = await fetch(`${API_URL}/api/contacts/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus }),
@@ -85,7 +88,8 @@ const Admin = () => {
 
     const handleReply = async (id, replyMessage) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/contacts/${id}/reply`, {
+            const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+            const response = await fetch(`${API_URL}/api/contacts/${id}/reply`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ replyMessage }),
