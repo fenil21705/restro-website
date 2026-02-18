@@ -1,6 +1,8 @@
 /* Home.css */
 .home-page {
     background-color: #fdfdfd;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 /* Home Hero */
@@ -1216,13 +1218,128 @@
 }
 
 @media (max-width: 900px) {
+    .home-hero {
+        height: auto;
+        padding: 120px 0 60px;
+        text-align: center;
+    }
+
+    .home-hero-title {
+        font-size: 36px;
+        line-height: 1.2;
+    }
+
+    .home-hero-desc {
+        font-size: 16px;
+        padding: 0 20px;
+    }
+
+    .hero-badge-container {
+        display: none;
+    }
+
+    .home-about-wrapper {
+        flex-direction: column;
+        text-align: center;
+        gap: 40px;
+    }
+
+    .about-text-col {
+        padding: 0 15px;
+    }
+
+    .section-header-left {
+        align-items: center;
+    }
+
+    .home-about-img-box {
+        width: 100%;
+        max-width: 350px;
+        height: 350px;
+        margin: 0 auto;
+    }
+
+    .home-about-img-box.circular-img {
+        max-width: 300px;
+        height: auto;
+        aspect-ratio: 1/1;
+    }
+
+    .badge-1 {
+        right: 0;
+        top: 0;
+    }
+
+    .deco-1,
+    .deco-2 {
+        display: none;
+    }
+
+    .about-highlights {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .home-menu-grid,
+    .offers-grid,
+    .wcu-grid,
+    .home-chef-grid,
+    .testi-grid,
+    .home-blog-grid {
+        grid-template-columns: 1fr !important;
+        gap: 40px;
+    }
+
     .gallery-grid-home {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .insta-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
     }
 
     .cta-content {
         flex-direction: column;
         text-align: center;
         gap: 30px;
+    }
+
+    .offer-card {
+        flex-direction: column-reverse;
+        height: auto;
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .offer-content {
+        padding-right: 0;
+        padding-top: 20px;
+    }
+
+    .section-title {
+        font-size: 36px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .home-hero-title {
+        font-size: 28px !important;
+    }
+
+    .gallery-grid-home {
+        grid-template-columns: 1fr !important;
+    }
+
+    .insta-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .section-title {
+        font-size: 32px !important;
+    }
+
+    .testi-card-home {
+        padding: 20px;
     }
 }
